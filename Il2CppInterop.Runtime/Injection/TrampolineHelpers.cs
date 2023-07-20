@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using Il2CppInterop.Runtime.InteropTypes;
 
 namespace Il2CppInterop.Runtime.Injection;
@@ -11,6 +12,18 @@ internal static class TrampolineHelpers
     private static AssemblyBuilder _fixedStructAssembly;
     private static ModuleBuilder _fixedStructModuleBuilder;
     private static readonly Dictionary<int, Type> _fixedStructCache = new();
+
+    internal unsafe static Il2CppSystem.Reflection.MethodInfo GetMethodFix(this Il2CppSystem.Type type, MethodInfo predicate)
+    {
+        var methods = type.GetMethods();
+        foreach (var method in methods)
+        {
+            var name = Marshal.PtrToStringAnsi(IL2CPP.il2cpp_method_get_name(method.MethodHandle.Value));
+            if (name == predicate.Name) return method;
+        }
+
+        throw new MissingMethodException("the predicate was not found in the type given");
+    }
 
     private static Type GetFixedSizeStructType(int size)
     {

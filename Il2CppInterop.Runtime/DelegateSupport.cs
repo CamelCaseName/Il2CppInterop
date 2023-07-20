@@ -242,7 +242,7 @@ public static class DelegateSupport
             ClassInjector.RegisterTypeInIl2Cpp<Il2CppToMonoDelegateReference>();
 
         var il2CppDelegateType = Il2CppSystem.Type.internal_from_handle(IL2CPP.il2cpp_class_get_type(classTypePtr));
-        var nativeDelegateInvokeMethod = il2CppDelegateType.GetMethod("Invoke");
+        var nativeDelegateInvokeMethod = il2CppDelegateType.GetMethodFix(managedInvokeMethod);
 
         var nativeParameters = nativeDelegateInvokeMethod.GetParameters();
         if (nativeParameters.Count != parameterInfos.Length)
@@ -256,10 +256,6 @@ public static class DelegateSupport
 
             if (nativeType.IsPrimitive || managedType.IsPrimitive)
             {
-                if (nativeType.FullName != managedType.FullName)
-                    throw new ArgumentException(
-                        $"Parameter type mismatch at parameter {i}: {nativeType.FullName} != {managedType.FullName}");
-
                 continue;
             }
 
@@ -270,7 +266,7 @@ public static class DelegateSupport
 
             if (classPointerFromManagedType != classPointerFromNativeType)
                 throw new ArgumentException(
-                    $"Parameter type at {i} has mismatched native type pointers; types: {nativeType.FullName} != {managedType.FullName}");
+                    $"Parameter type at {i} has mismatched native type pointers; systemtype: {managedType.Name}");
 
             if (nativeType.IsByRef || managedType.IsByRef)
                 throw new ArgumentException($"Parameter at {i} is passed by reference, this is not supported");
