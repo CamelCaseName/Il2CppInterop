@@ -13,7 +13,7 @@ internal static class TrampolineHelpers
     private static ModuleBuilder _fixedStructModuleBuilder;
     private static readonly Dictionary<int, Type> _fixedStructCache = new();
 
-    internal unsafe static Il2CppSystem.Reflection.MethodInfo GetMethodFix(this Il2CppSystem.Type type, MethodInfo predicate)
+    internal static unsafe Il2CppSystem.Reflection.MethodInfo GetMethodFix(this Il2CppSystem.Type type, MethodInfo predicate)
     {
         var methods = type.GetMethods();
         foreach (var method in methods)
