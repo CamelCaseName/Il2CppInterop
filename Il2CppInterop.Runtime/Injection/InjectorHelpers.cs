@@ -73,7 +73,7 @@ namespace Il2CppInterop.Runtime.Injection
         {
             if (InjectedAssembly == null) CreateInjectedAssembly();
             //todo rebuild with this enabled for next major version of house party
-            GenericMethodGetMethodHook.ApplyHook();
+            //GenericMethodGetMethodHook.ApplyHook();
             GetTypeInfoFromTypeDefinitionIndexHook.ApplyHook();
             GetFieldDefaultValueHook.ApplyHook();
             ClassInit ??= FindClassInit();
