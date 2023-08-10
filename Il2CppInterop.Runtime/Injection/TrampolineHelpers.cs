@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.InteropServices;
 using Il2CppInterop.Runtime.InteropTypes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 
 namespace Il2CppInterop.Runtime.Injection;
 
@@ -15,14 +15,18 @@ internal static class TrampolineHelpers
 
     internal static unsafe Il2CppSystem.Reflection.MethodInfo GetMethodFix(this Il2CppSystem.Type type, MethodInfo predicate)
     {
-        var methods = type.GetMethods();
-        foreach (var method in methods)
-        {
-            var name = Marshal.PtrToStringAnsi(IL2CPP.il2cpp_method_get_name(method.MethodHandle.Value));
-            if (name == predicate.Name) return method;
-        }
+        var nativeTypeClass = IL2CPP.il2cpp_object_get_class(type.Pointer);
+        var nativeGetMethod = IL2CPP.il2cpp_class_get_method_from_name(nativeTypeClass, "GetMethod", 1);
+        var exception = IntPtr.Zero;
 
-        throw new MissingMethodException("the predicate was not found in the type given");
+        var parameters = stackalloc IntPtr[1];
+        *parameters = IL2CPP.ManagedStringToIl2Cpp(predicate.Name);
+        var nativeMethodInfoObject = IL2CPP.il2cpp_runtime_invoke(nativeGetMethod, type.Pointer, (void**)parameters, ref exception);
+        Il2CppException.RaiseExceptionIfNecessary(exception);
+        if (nativeMethodInfoObject != IntPtr.Zero)
+            return Runtime.Il2CppObjectPool.Get<Il2CppSystem.Reflection.MethodInfo>(nativeMethodInfoObject);
+        else
+            throw new MissingMethodException("method was not found");
     }
 
     private static Type GetFixedSizeStructType(int size)

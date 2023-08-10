@@ -36,7 +36,7 @@ namespace Il2CppInterop.Runtime.Injection.Hooks
 
                 return (Il2CppMethodInfo*)inflatedMethodPointer;
             }
-
+            
             return Original(gmethod, copyMethodPtr);
         }
 

@@ -8,6 +8,7 @@ using System.Text;
 using Il2CppInterop.Common;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppInterop.Runtime.Runtime;
 using Microsoft.Extensions.Logging;
 using Object = Il2CppSystem.Object;
@@ -115,7 +116,7 @@ public static class DelegateSupport
         var returnType = managedMethod.ReturnType.NativeType();
 
         var managedParameters = managedMethod.GetParameters();
-        var nativeParameters = nativeMethod.GetParameters();
+        var nativeParameters = nativeMethod.GetParametersInternal();
         var parameterTypes = new Type[managedParameters.Length + 1 + 1]; // thisptr for target, methodInfo last arg
         parameterTypes[0] = typeof(IntPtr);
         parameterTypes[managedParameters.Length + 1] = typeof(Il2CppMethodInfo*);
@@ -241,15 +242,15 @@ public static class DelegateSupport
         if (Il2CppClassPointerStore<Il2CppToMonoDelegateReference>.NativeClassPtr == IntPtr.Zero)
             ClassInjector.RegisterTypeInIl2Cpp<Il2CppToMonoDelegateReference>();
 
-        var il2CppDelegateType = Il2CppSystem.Type.internal_from_handle(IL2CPP.il2cpp_class_get_type(classTypePtr));
-        var nativeDelegateInvokeMethod = il2CppDelegateType.GetMethodFix(managedInvokeMethod);
+        var nativeDelegateInvokeMethod = Il2CppType.From(typeof(TIl2Cpp)).GetMethodFix(managedInvokeMethod);
 
-        var nativeParameters = nativeDelegateInvokeMethod.GetParameters();
-        if (nativeParameters.Count != parameterInfos.Length)
+        var nativeParametersCount = nativeDelegateInvokeMethod.GetParametersCount();
+        if (nativeParametersCount != parameterInfos.Length)
             throw new ArgumentException(
-                $"Managed delegate has {parameterInfos.Length} parameters, native has {nativeParameters.Count}, these should match");
+                $"Managed delegate has {parameterInfos.Length} parameters, native has {nativeParametersCount}, these should match");
 
-        for (var i = 0; i < nativeParameters.Count; i++)
+        var nativeParameters = nativeDelegateInvokeMethod.GetParametersInternal();
+        for (var i = 0; i < nativeParametersCount; i++)
         {
             var nativeType = nativeParameters[i].ParameterType;
             var managedType = parameterInfos[i].ParameterType;
@@ -326,7 +327,7 @@ public static class DelegateSupport
 
             hashCode.Add(methodInfo.ReturnType.GetHashCode());
             if (hasThis) hashCode.Add(methodInfo.DeclaringType.GetHashCode());
-            foreach (var parameterInfo in methodInfo.GetParameters())
+            foreach (var parameterInfo in methodInfo.GetParametersInternal())
             {
                 hashCode.Add(parameterInfo.ParameterType.GetHashCode());
             }
