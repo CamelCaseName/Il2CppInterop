@@ -254,9 +254,13 @@ public static class DelegateSupport
         {
             var nativeType = nativeParameters[i].ParameterType;
             var managedType = parameterInfos[i].ParameterType;
+            var nativeTypeFullName = Marshal.PtrToStringAnsi(IL2CPP.il2cpp_type_get_name(nativeType._impl.value));
 
             if (nativeType.IsPrimitive || managedType.IsPrimitive)
             {
+                if (nativeTypeFullName != managedType.FullName)
+                    throw new ArgumentException(
+                        $"Parameter type mismatch at parameter {i}: {nativeTypeFullName} != {managedType.FullName}");
                 continue;
             }
 
@@ -267,7 +271,7 @@ public static class DelegateSupport
 
             if (classPointerFromManagedType != classPointerFromNativeType)
                 throw new ArgumentException(
-                    $"Parameter type at {i} has mismatched native type pointers; systemtype: {managedType.Name}");
+                    $"Parameter type at {i} has mismatched native type pointers; types: {nativeTypeFullName} != {managedType.FullName}\"");
 
             if (nativeType.IsByRef || managedType.IsByRef)
                 throw new ArgumentException($"Parameter at {i} is passed by reference, this is not supported");

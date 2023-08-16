@@ -72,8 +72,8 @@ namespace Il2CppInterop.Runtime.Injection
         internal static void Setup()
         {
             if (InjectedAssembly == null) CreateInjectedAssembly();
-            //todo rebuild with this enabled for next major version of house party
-            //GenericMethodGetMethodHook.ApplyHook();
+            //uncomment if running without the house party support module plugin
+            GenericMethodGetMethodHook.ApplyHook();
             GetTypeInfoFromTypeDefinitionIndexHook.ApplyHook();
             GetFieldDefaultValueHook.ApplyHook();
             ClassInit ??= FindClassInit();
