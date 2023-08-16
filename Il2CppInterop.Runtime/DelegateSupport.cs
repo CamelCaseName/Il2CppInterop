@@ -246,23 +246,21 @@ public static class DelegateSupport
 
         var nativeDelegateInvokeMethod = Il2CppType.From(typeof(TIl2Cpp)).GetMethodFix(managedInvokeMethod);
 
-        var nativeParametersCount = nativeDelegateInvokeMethod.GetParametersCount();
-        if (nativeParametersCount != parameterInfos.Length)
-            throw new ArgumentException(
-                $"Managed delegate has {parameterInfos.Length} parameters, native has {nativeParametersCount}, these should match");
-
         var nativeParameters = nativeDelegateInvokeMethod.GetParametersInternal();
-        for (var i = 0; i < nativeParametersCount; i++)
+        if (nativeParameters.Count != parameterInfos.Length)
+            throw new ArgumentException(
+                $"Managed delegate has {parameterInfos.Length} parameters, native has {nativeParameters.Count}, these should match");
+
+        for (var i = 0; i < nativeParameters.Count; i++)
         {
             var nativeType = nativeParameters[i].ParameterType;
             var managedType = parameterInfos[i].ParameterType;
-            var nativeTypeFullName = Marshal.PtrToStringAnsi(IL2CPP.il2cpp_type_get_name(nativeType._impl.value));
 
             if (nativeType.IsPrimitive || managedType.IsPrimitive)
             {
-                if (nativeTypeFullName != managedType.FullName)
+                if (Marshal.PtrToStringAnsi(IL2CPP.il2cpp_type_get_name(nativeType._impl.value)) != managedType.FullName)
                     throw new ArgumentException(
-                        $"Parameter type mismatch at parameter {i}: {nativeTypeFullName} != {managedType.FullName}");
+                        $"Parameter type mismatch at parameter {i}: {Marshal.PtrToStringAnsi(IL2CPP.il2cpp_type_get_name(nativeType._impl.value))} != {managedType.FullName}");
                 continue;
             }
 
@@ -272,8 +270,10 @@ public static class DelegateSupport
             var classPointerFromNativeType = IL2CPP.il2cpp_class_from_type(nativeType._impl.value);
 
             if (classPointerFromManagedType != classPointerFromNativeType)
+            {
                 throw new ArgumentException(
-                    $"Parameter type at {i} has mismatched native type pointers; types: {nativeTypeFullName} != {managedType.FullName}\"");
+                    $"Parameter type at {i} has mismatched native type pointers; types: {Marshal.PtrToStringAnsi(IL2CPP.il2cpp_type_get_name(nativeType._impl.value))} != {managedType.FullName}\"");
+            }
 
             if (nativeType.IsByRef || managedType.IsByRef)
                 throw new ArgumentException($"Parameter at {i} is passed by reference, this is not supported");
